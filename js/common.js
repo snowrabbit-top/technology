@@ -115,3 +115,29 @@ function setupSidebarNavigation() {
         });
     });
 }
+
+// 通用弹出提示
+function showPopup(type, message, duration = 2000) {
+    const popup = document.createElement('div');
+    popup.id = 'popup';
+    popup.className = 'popup';
+
+    const popupIcon = document.createElement('div');
+    popupIcon.className = `icon ${type}`;
+    popupIcon.innerHTML = type === 'success' ? '✔' : '✘';
+
+    const popupMsg = document.createElement('div');
+    popupMsg.textContent = message;
+
+    popup.appendChild(popupIcon);
+    popup.appendChild(popupMsg);
+    document.body.appendChild(popup);
+
+    requestAnimationFrame(() => popup.classList.add('show'));
+
+    setTimeout(() => {
+        popup.classList.remove('show');
+        popup.addEventListener('transitionend', () => popup.remove(), {once: true});
+        setTimeout(() => popup.remove(), 300);
+    }, duration);
+}
