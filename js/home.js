@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 快捷操作按钮交互
     const quickBtns = document.querySelectorAll('.quick-btn');
     quickBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const action = this.textContent.trim();
             alert(`执行操作: ${action}`);
         });
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 刷新按钮
     const refreshLink = document.querySelector('.card-header a[href="#"]');
     if (refreshLink) {
-        refreshLink.addEventListener('click', function(e) {
+        refreshLink.addEventListener('click', function (e) {
             e.preventDefault();
             // 这里可以添加实际的刷新逻辑
             alert('刷新系统状态数据...');
