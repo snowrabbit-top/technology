@@ -1,36 +1,3 @@
-// 显示弹出消息
-function showPopup(type, message, duration = 2000) {
-    let popup = document.getElementById('popup');
-
-    // 如果弹出层不存在，则创建它
-    if (!popup) {
-        popup = document.createElement('div');
-        popup.id = 'popup';
-        popup.className = 'popup';
-
-        const popupIcon = document.createElement('div');
-        popupIcon.id = 'popupIcon';
-        popupIcon.className = 'icon';
-
-        const popupMsg = document.createElement('div');
-        popupMsg.id = 'popupMsg';
-
-        popup.appendChild(popupIcon);
-        popup.appendChild(popupMsg);
-        document.body.appendChild(popup);
-    }
-
-    const icon = document.getElementById('popupIcon');
-    const msg = document.getElementById('popupMsg');
-
-    icon.className = 'icon ' + type;
-    icon.innerHTML = type === 'success' ? '✔' : '✘';
-    msg.textContent = message;
-
-    popup.classList.add('show');
-    setTimeout(() => popup.classList.remove('show'), duration);
-}
-
 // 登录功能相关脚本
 async function login(loginUrl = '/login', redirectUrl = '/domain') {
     const account = document.getElementById('account');

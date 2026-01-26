@@ -82,6 +82,30 @@ function createBackgroundGlows() {
     }
 }
 
+// 显示弹出消息
+function showPopup(type, message, duration = 2000) {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+
+    const popupIcon = document.createElement('div');
+    popupIcon.className = `icon ${type}`;
+    popupIcon.innerHTML = type === 'success' ? '✔' : '✘';
+
+    const popupMsg = document.createElement('div');
+    popupMsg.textContent = message;
+
+    popup.appendChild(popupIcon);
+    popup.appendChild(popupMsg);
+    document.body.appendChild(popup);
+
+    requestAnimationFrame(() => popup.classList.add('show'));
+
+    setTimeout(() => {
+        popup.classList.remove('show');
+        popup.addEventListener('transitionend', () => popup.remove(), {once: true});
+    }, duration);
+}
+
 // 初始化科技感背景
 function initTechBackground(particlesContainerId = 'particles', particleCount = 25) {
     let particlesContainer = document.getElementById(particlesContainerId);
