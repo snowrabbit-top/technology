@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 首页</title>
+        <style>
+            /* 通用科技感背景样式 */
+            body {
+                margin: 0;
+                height: 100vh;
+                background: linear-gradient(135deg, #0a0f1a 0%, #060912 50%, #04070f 100%);
+                font-family: "Segoe UI", sans-serif;
+                color: #fff;
+                overflow: hidden;
+                position: relative;
+            }
+
+            /* 深色背景上的微妙噪点纹理 */
+            body::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: radial-gradient(circle at 10% 20%, rgba(0, 120, 160, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(0, 100, 140, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 80, 120, 0.02) 1px, transparent 1px);
+                background-size: 100px 100px, 120px 120px, 80px 80px;
+                z-index: -2;
+            }
+
+            /* 动态粒子背景 */
+            .particles {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+            }
+
+            .particle {
+                position: absolute;
+                width: 1.5px;
+                height: 1.5px;
+                background: rgba(0, 140, 180, 0.2);
+                border-radius: 50%;
+                animation: float 20s infinite linear;
+            }
+
+            @keyframes float {
+                0% {
+                    transform: translateY(0) translateX(0);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.4;
+                }
+                90% {
+                    opacity: 0.2;
+                }
+                100% {
+                    transform: translateY(-100vh) translateX(80px);
+                    opacity: 0;
+                }
+            }
+
+            /* 背景光晕效果 */
+            .glow-circle {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(40px);
+                opacity: 0.15;
+                z-index: -3;
+            }
+
+            /* 主布局容器 */
+            .main-container {
+                display: flex;
+                height: 100vh;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* 侧边栏样式 */
+            .sidebar {
+                width: 220px;
+                background: rgba(15, 25, 40, 0.7);
+                border-right: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                padding: 20px 0;
+                transition: all 0.3s ease;
+                box-shadow: 2px 0 15px rgba(0, 10, 20, 0.2);
+            }
+
+            .sidebar:hover {
+                border-right-color: rgba(0, 140, 180, 0.3);
+                box-shadow: 2px 0 25px rgba(0, 140, 180, 0.2);
+            }
+
+            .logo {
+                text-align: center;
+                padding: 0 20px 20px;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.1);
+                margin-bottom: 20px;
+            }
+
+            .logo h3 {
+                margin: 0;
+                font-size: 18px;
+                letter-spacing: 1px;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .nav-menu {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .nav-item {
+                padding: 12px 20px;
+                margin: 0 10px 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .nav-item:hover {
+                background: rgba(20, 35, 55, 0.7);
+                border-left: 3px solid #008cff;
+            }
+
+            .nav-item.active {
+                background: rgba(0, 140, 180, 0.2);
+                border-left: 3px solid #00c8dc;
+            }
+
+            .nav-item i {
+                font-size: 16px;
+                color: #00c8dc;
+            }
+
+            .nav-item span {
+                font-size: 14px;
+                font-weight: 400;
+            }
+
+            /* 主内容区域 */
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            /* 标题栏样式 */
+            .header {
+                padding: 20px 30px;
+                background: rgba(15, 25, 40, 0.6);
+                border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header-title {
+                font-size: 20px;
+                font-weight: 500;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            /* 面包屑样式 */
+            .breadcrumb {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                color: rgba(180, 220, 255, 0.7);
+            }
+
+            .breadcrumb span {
+                color: rgba(180, 220, 255, 0.9);
+            }
+
+            .breadcrumb i {
+                font-size: 12px;
+                color: rgba(100, 180, 220, 0.5);
+            }
+
+            /* 内容区域 */
+            .content {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            /* 卡片通用样式 */
+            .card {
+                background: rgba(15, 25, 40, 0.6);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+                padding: 20px;
+                box-shadow: 0 8px 32px rgba(0, 10, 20, 0.3);
+                transition: all 0.3s ease;
+                margin-bottom: 20px;
+            }
+
+            .card:hover {
+                box-shadow: 0 0 25px rgba(0, 140, 180, 0.3);
+                border-color: rgba(0, 140, 180, 0.3);
+                transform: translateY(-2px);
+            }
+
+            .card-header {
+                font-size: 16px;
+                font-weight: 500;
+                margin-bottom: 15px;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .card-header h3 {
+                margin: 0;
+            }
+
+            .card-header a {
+                color: #00c8dc;
+                text-decoration: none;
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .card-header a:hover {
+                opacity: 1;
+                text-decoration: underline;
+            }
+
+            /* 发光边框动画 */
+            .card::after {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(45deg, #008cff, #005ca0, #008cff);
+                background-size: 400%;
+                border-radius: 18px;
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .card:hover::after {
+                opacity: 0.4;
+                animation: borderGlow 4s linear infinite;
+            }
+
+            @keyframes borderGlow {
+                0% {
+                    background-position: 0% 50%;
+                }
+                100% {
+                    background-position: 400% 50%;
+                }
+            }
+
+            /* 系统状态网格 */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                background: rgba(20, 35, 55, 0.7);
+                padding: 15px;
+                border-radius: 12px;
+                border: 1px solid rgba(100, 180, 220, 0.1);
+                text-align: center;
+            }
+
+            .stat-value {
+                font-size: 24px;
+                font-weight: 600;
+                color: #00c8dc;
+                margin: 5px 0;
+            }
+
+            .stat-label {
+                font-size: 12px;
+                color: rgba(180, 220, 255, 0.7);
+            }
+
+            .stat-status {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 5px;
+            }
+
+            .status-online {
+                background: #00cc6a;
+                box-shadow: 0 0 8px #00cc6a;
+            }
+
+            .status-warning {
+                background: #ffaa00;
+                box-shadow: 0 0 8px #ffaa00;
+            }
+
+            .status-error {
+                background: #cc2e2e;
+                box-shadow: 0 0 8px #cc2e2e;
+            }
+
+            /* 关键指标网格 */
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .metric-item {
+                text-align: center;
+                padding: 15px;
+                background: rgba(20, 35, 55, 0.7);
+                border-radius: 12px;
+                border: 1px solid rgba(100, 180, 220, 0.1);
+            }
+
+            .metric-value {
+                font-size: 20px;
+                font-weight: 600;
+                color: #e0f0ff;
+                margin: 5px 0;
+            }
+
+            .metric-label {
+                font-size: 12px;
+                color: rgba(180, 220, 255, 0.7);
+            }
+
+            /* 最近活动列表 */
+            .activity-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .activity-item {
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.1);
+                display: flex;
+                gap: 12px;
+            }
+
+            .activity-item:last-child {
+                border-bottom: none;
+            }
+
+            .activity-icon {
+                font-size: 16px;
+                color: #00c8dc;
+                margin-top: 2px;
+            }
+
+            .activity-content {
+                flex: 1;
+            }
+
+            .activity-text {
+                font-size: 13px;
+                color: #e0f0ff;
+                margin-bottom: 3px;
+            }
+
+            .activity-time {
+                font-size: 11px;
+                color: rgba(180, 220, 255, 0.6);
+            }
+
+            /* 快捷操作按钮 */
+            .quick-actions {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .quick-btn {
+                padding: 8px 16px;
+                background: rgba(20, 35, 55, 0.7);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 8px;
+                color: #00c8dc;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .quick-btn:hover {
+                background: rgba(0, 140, 180, 0.3);
+                border-color: rgba(0, 140, 180, 0.4);
+                transform: translateY(-1px);
+            }
+
+            /* 进度条样式 */
+            .progress-bar {
+                height: 6px;
+                background: rgba(20, 35, 55, 0.7);
+                border-radius: 3px;
+                overflow: hidden;
+                margin: 8px 0;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #008cff, #00c8dc);
+                border-radius: 3px;
+                transition: width 0.3s ease;
+            }
+
+            .progress-text {
+                font-size: 11px;
+                color: rgba(180, 220, 255, 0.8);
+                text-align: right;
+            }
+
+            /* 滚动条样式 */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: rgba(15, 25, 40, 0.3);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(45deg, #008cff, #005ca0);
+                border-radius: 4px;
+            }
+
+            /* 响应式设计 */
+            @media (max-width: 768px) {
+                .main-container {
+                    flex-direction: column;
+                }
+
+                .sidebar {
+                    width: 100%;
+                    height: auto;
+                    border-right: none;
+                    border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                }
+
+                .nav-menu {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .nav-item {
+                    margin: 5px;
+                    padding: 10px 15px;
+                }
+
+                .stats-grid,
+                .metrics-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                }
+            }
+
+            @media (max-width: 480px) {
+                .content {
+                    padding: 15px;
+                }
+
+                .stats-grid,
+                .metrics-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .quick-actions {
+                    flex-direction: column;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="particles" id="particles"></div>
+
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item active">
+                        <span>🏠</span>
+                        <span>首页</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📊</span>
+                        <span>系统监控</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>⚙️</span>
+                        <span>系统设置</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>👥</span>
+                        <span>用户管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🎭</span>
+                        <span>角色管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>💬</span>
+                        <span>命令管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📁</span>
+                        <span>文件管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🔧</span>
+                        <span>工具箱</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📋</span>
+                        <span>日志查看</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🚪</span>
+                        <span>退出登录</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑 -->
+                <div class="header">
+                    <div class="header-title">系统概览</div>
+                    <div class="breadcrumb">
+                        <span>首页</span>
+                        <span>/</span>
+                        <span>系统概览</span>
+                    </div>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="content">
+                    <!-- 系统状态概览 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>系统状态</h3>
+                            <a href="#">刷新</a>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-status status-online"></div>
+                                <div class="stat-label">服务器状态</div>
+                                <div class="stat-value">在线</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">CPU使用率</div>
+                                <div class="stat-value">23.5%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 23.5%"></div>
+                                </div>
+                                <div class="progress-text">正常</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">内存使用率</div>
+                                <div class="stat-value">45.2%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45.2%"></div>
+                                </div>
+                                <div class="progress-text">8.2GB/18GB</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">磁盘使用率</div>
+                                <div class="stat-value">67.8%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 67.8%"></div>
+                                </div>
+                                <div class="progress-text">135GB/200GB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 关键指标统计 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>关键指标</h3>
+                            <a href="#">查看更多</a>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-value">1,247</div>
+                                <div class="metric-label">总用户数</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">8</div>
+                                <div class="metric-label">角色数量</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">156</div>
+                                <div class="metric-label">命令总数</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">24</div>
+                                <div class="metric-label">今日活跃</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">12</div>
+                                <div class="metric-label">待处理告警</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">3</div>
+                                <div class="metric-label">待办任务</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最近活动 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>最近活动</h3>
+                            <a href="#">查看全部</a>
+                        </div>
+                        <ul class="activity-list">
+                            <li class="activity-item">
+                                <div class="activity-icon">👤</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">用户 admin 从 192.168.1.100 登录系统</div>
+                                    <div class="activity-time">2分钟前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">🎭</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">管理员修改了 "超级管理员" 角色权限</div>
+                                    <div class="activity-time">15分钟前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">💬</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">新增命令 "/system/restart" 到命令库</div>
+                                    <div class="activity-time">1小时前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">⚠️</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">磁盘使用率超过 65%，建议清理空间</div>
+                                    <div class="activity-time">2小时前</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 快捷操作 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>快捷操作</h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-btn">🔄 重启服务</button>
+                            <button class="quick-btn">🧹 清理缓存</button>
+                            <button class="quick-btn">📤 导出数据</button>
+                            <button class="quick-btn">⚙️ 系统设置</button>
+                            <button class="quick-btn">🔍 健康检查</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 创建动态粒子背景
+            function createParticles(containerId = 'particles', particleCount = 25) {
+                const particlesContainer = document.getElementById(containerId);
+                if (!particlesContainer) return;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 20;
+                    const duration = 15 + Math.random() * 25;
+
+                    particle.style.left = `${left}%`;
+                    particle.style.animationDelay = `-${delay}s`;
+                    particle.style.animationDuration = `${duration}s`;
+
+                    const size = 1 + Math.random() * 1;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+
+                    const opacity = 0.15 + Math.random() * 0.25;
+                    const blueTint = 140 + Math.floor(Math.random() * 40);
+                    particle.style.background = `rgba(0, ${blueTint}, 180, ${opacity})`;
+
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            // 创建动态背景光晕
+            function createBackgroundGlows() {
+                const body = document.body;
+                const glowCount = 4;
+
+                for (let i = 0; i < glowCount; i++) {
+                    const glow = document.createElement('div');
+                    glow.className = 'glow-circle';
+
+                    const positions = [
+                        {top: '10%', left: '15%'},
+                        {bottom: '15%', right: '20%'},
+                        {top: '25%', right: '10%'},
+                        {bottom: '20%', left: '25%'}
+                    ];
+
+                    const pos = positions[i];
+                    if (pos.top) glow.style.top = pos.top;
+                    if (pos.bottom) glow.style.bottom = pos.bottom;
+                    if (pos.left) glow.style.left = pos.left;
+                    if (pos.right) glow.style.right = pos.right;
+
+                    const sizes = [200, 250, 180, 220];
+                    glow.style.width = `${sizes[i]}px`;
+                    glow.style.height = `${sizes[i]}px`;
+
+                    const colors = [
+                        'radial-gradient(circle, #008cff, transparent)',
+                        'radial-gradient(circle, #00c8dc, transparent)',
+                        'radial-gradient(circle, #0070b0, transparent)',
+                        'radial-gradient(circle, #00a0d0, transparent)'
+                    ];
+                    glow.style.background = colors[i];
+
+                    const delay = Math.random() * 5;
+                    const duration = 8 + Math.random() * 12;
+                    glow.style.animation = `glowPulse${i} ${duration}s ease-in-out ${delay}s infinite alternate`;
+
+                    body.appendChild(glow);
+
+                    const style = document.createElement('style');
+                    style.textContent = `
+                    @keyframes glowPulse${i} {
+                        0% {
+                            opacity: 0.1;
+                            transform: scale(0.95);
+                        }
+                        50% {
+                            opacity: 0.18;
+                            transform: scale(1.05);
+                        }
+                        100% {
+                            opacity: 0.12;
+                            transform: scale(1);
+                        }
+                    }
+                `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            // 初始化科技感背景
+            function initTechBackground(particlesContainerId = 'particles', particleCount = 25) {
+                let particlesContainer = document.getElementById(particlesContainerId);
+                if (!particlesContainer) {
+                    particlesContainer = document.createElement('div');
+                    particlesContainer.id = particlesContainerId;
+                    particlesContainer.className = 'particles';
+                    document.body.insertBefore(particlesContainer, document.body.firstChild);
+                }
+
+                createParticles(particlesContainerId, particleCount);
+                createBackgroundGlows();
+            }
+
+            // 页面加载完成后初始化
+            document.addEventListener('DOMContentLoaded', () => {
+                initTechBackground();
+
+                // 侧边栏菜单交互
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+
+                        // 更新标题和面包屑
+                        const titleText = this.querySelector('span:last-child').textContent;
+                        document.querySelector('.header-title').textContent = titleText;
+                        document.querySelector('.breadcrumb span:last-child').textContent = titleText;
+                    });
+                });
+
+                // 快捷操作按钮交互
+                const quickBtns = document.querySelectorAll('.quick-btn');
+                quickBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const action = this.textContent.trim();
+                        alert(`执行操作: ${action}`);
+                    });
+                });
+
+                // 刷新按钮
+                const refreshLink = document.querySelector('.card-header a[href="#"]');
+                if (refreshLink) {
+                    refreshLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // 这里可以添加实际的刷新逻辑
+                        alert('刷新系统状态数据...');
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
+

@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 系统监控</title>
+        <style>
+            /* 通用科技感背景样式 */
+            body {
+                margin: 0;
+                height: 100vh;
+                background: linear-gradient(135deg, #0a0f1a 0%, #060912 50%, #04070f 100%);
+                font-family: "Segoe UI", sans-serif;
+                color: #fff;
+                overflow: hidden;
+                position: relative;
+            }
+
+            /* 深色背景上的微妙噪点纹理 */
+            body::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: radial-gradient(circle at 10% 20%, rgba(0, 120, 160, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(0, 100, 140, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 80, 120, 0.02) 1px, transparent 1px);
+                background-size: 100px 100px, 120px 120px, 80px 80px;
+                z-index: -2;
+            }
+
+            /* 动态粒子背景 */
+            .particles {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            .particle {
+                position: absolute;
+                width: 1.5px;
+                height: 1.5px;
+                background: rgba(0, 140, 180, 0.2);
+                border-radius: 50%;
+                animation: float 20s infinite linear;
+            }
+
+            @keyframes float {
+                0% {
+                    transform: translateY(0) translateX(0);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.4;
+                }
+                90% {
+                    opacity: 0.2;
+                }
+                100% {
+                    transform: translateY(-100vh) translateX(80px);
+                    opacity: 0;
+                }
+            }
+
+            /* 背景光晕效果 */
+            .glow-circle {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(40px);
+                opacity: 0.15;
+                z-index: -3;
+                pointer-events: none;
+            }
+
+            /* 主布局容器 */
+            .main-container {
+                display: flex;
+                height: 100vh;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* 侧边栏样式 */
+            .sidebar {
+                width: 220px;
+                background: rgba(15, 25, 40, 0.7);
+                border-right: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                padding: 20px 0;
+                transition: all 0.3s ease;
+                box-shadow: 2px 0 15px rgba(0, 10, 20, 0.2);
+            }
+
+            .sidebar:hover {
+                border-right-color: rgba(0, 140, 180, 0.3);
+                box-shadow: 2px 0 25px rgba(0, 140, 180, 0.2);
+            }
+
+            .logo {
+                text-align: center;
+                padding: 0 20px 20px;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.1);
+                margin-bottom: 20px;
+            }
+
+            .logo h3 {
+                margin: 0;
+                font-size: 18px;
+                letter-spacing: 1px;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .nav-menu {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .nav-item {
+                padding: 12px 20px;
+                margin: 0 10px 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                user-select: none;
+            }
+
+            .nav-item:hover {
+                background: rgba(20, 35, 55, 0.7);
+                border-left: 3px solid #008cff;
+            }
+
+            .nav-item.active {
+                background: rgba(0, 140, 180, 0.2);
+                border-left: 3px solid #00c8dc;
+            }
+
+            .nav-item span {
+                font-size: 14px;
+                font-weight: 400;
+            }
+
+            /* 主内容区域 */
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            /* 标题栏样式（模仿首页） */
+            .header {
+                padding: 20px 30px;
+                background: rgba(15, 25, 40, 0.6);
+                border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header-title {
+                font-size: 20px;
+                font-weight: 500;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            /* 面包屑样式 */
+            .breadcrumb {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                color: rgba(180, 220, 255, 0.7);
+            }
+
+            .breadcrumb span {
+                color: rgba(180, 220, 255, 0.9);
+            }
+
+            .breadcrumb i {
+                font-size: 12px;
+                color: rgba(100, 180, 220, 0.5);
+            }
+
+            /* 内容区域 */
+            .content {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            /* 卡片通用样式 */
+            .card {
+                background: rgba(15, 25, 40, 0.6);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+                padding: 18px;
+                box-shadow: 0 8px 32px rgba(0, 10, 20, 0.3);
+                transition: all 0.3s ease;
+                margin-bottom: 18px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .card:hover {
+                box-shadow: 0 0 25px rgba(0, 140, 180, 0.3);
+                border-color: rgba(0, 140, 180, 0.3);
+                transform: translateY(-2px);
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .card-header h3 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 500;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .card-subtitle {
+                font-size: 12px;
+                color: rgba(180, 220, 255, 0.65);
+            }
+
+            .card-tools {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            /* 发光边框动画 */
+            .card::after {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(45deg, #008cff, #005ca0, #008cff);
+                background-size: 400%;
+                border-radius: 18px;
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .card:hover::after {
+                opacity: 0.35;
+                animation: borderGlow 4s linear infinite;
+            }
+
+            @keyframes borderGlow {
+                0% {
+                    background-position: 0% 50%;
+                }
+                100% {
+                    background-position: 400% 50%;
+                }
+            }
+
+            /* 网格布局 */
+            .grid-3 {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            .grid-2 {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            /* 概览统计卡 */
+            .stat-card {
+                background: rgba(20, 35, 55, 0.7);
+                padding: 14px;
+                border-radius: 12px;
+                border: 1px solid rgba(100, 180, 220, 0.12);
+            }
+
+            .stat-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+
+            .stat-name {
+                font-size: 12px;
+                color: rgba(180, 220, 255, 0.75);
+            }
+
+            .badge {
+                padding: 3px 8px;
+                border-radius: 999px;
+                font-size: 11px;
+                border: 1px solid rgba(100, 180, 220, 0.18);
+                background: rgba(10, 18, 30, 0.35);
+                color: rgba(224, 240, 255, 0.85);
+            }
+
+            .badge.ok {
+                color: rgba(0, 204, 106, 0.95);
+                border-color: rgba(0, 204, 106, 0.35);
+            }
+
+            .badge.warn {
+                color: rgba(255, 170, 0, 0.95);
+                border-color: rgba(255, 170, 0, 0.35);
+            }
+
+            .badge.err {
+                color: rgba(204, 46, 46, 0.95);
+                border-color: rgba(204, 46, 46, 0.35);
+            }
+
+            .stat-value {
+                font-size: 22px;
+                font-weight: 650;
+                color: #e0f0ff;
+                letter-spacing: 0.3px;
+            }
+
+            .stat-foot {
+                margin-top: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                font-size: 11px;
+                color: rgba(180, 220, 255, 0.65);
+            }
+
+            /* 进度条 */
+            .progress-bar {
+                height: 6px;
+                background: rgba(20, 35, 55, 0.7);
+                border-radius: 3px;
+                overflow: hidden;
+                margin-top: 8px;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #008cff, #00c8dc);
+                border-radius: 3px;
+                transition: width 0.35s ease;
+            }
+
+            /* 图表（简单SVG折线） */
+            .mini-chart {
+                width: 100%;
+                height: 96px;
+                border-radius: 12px;
+                background: rgba(10, 18, 30, 0.35);
+                border: 1px solid rgba(100, 180, 220, 0.12);
+                overflow: hidden;
+                position: relative;
+            }
+
+            .mini-chart svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            .mini-chart .gridline {
+                stroke: rgba(100, 180, 220, 0.12);
+                stroke-width: 1;
+            }
+
+            .mini-chart .line {
+                fill: none;
+                stroke: rgba(0, 200, 220, 0.95);
+                stroke-width: 2;
+                filter: drop-shadow(0 0 8px rgba(0, 200, 220, 0.25));
+            }
+
+            .mini-chart .area {
+                fill: rgba(0, 140, 180, 0.14);
+            }
+
+            /* 表格 */
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                overflow: hidden;
+                border-radius: 12px;
+                border: 1px solid rgba(100, 180, 220, 0.12);
+            }
+
+            .table th, .table td {
+                padding: 10px 12px;
+                font-size: 12px;
+                text-align: left;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.10);
+                color: rgba(224, 240, 255, 0.9);
+            }
+
+            .table th {
+                background: rgba(20, 35, 55, 0.6);
+                color: rgba(180, 220, 255, 0.85);
+                font-weight: 500;
+            }
+
+            .table tr:hover td {
+                background: rgba(0, 140, 180, 0.12);
+            }
+
+            .muted {
+                color: rgba(180, 220, 255, 0.65) !important;
+            }
+
+            /* 告警 */
+            .alerts {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .alert {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 12px;
+                border-radius: 12px;
+                background: rgba(20, 35, 55, 0.65);
+                border: 1px solid rgba(100, 180, 220, 0.12);
+            }
+
+            .alert .icon {
+                font-size: 16px;
+                margin-top: 2px;
+            }
+
+            .alert .text {
+                flex: 1;
+            }
+
+            .alert .title {
+                font-size: 12px;
+                color: rgba(224, 240, 255, 0.92);
+                margin-bottom: 4px;
+            }
+
+            .alert .time {
+                font-size: 11px;
+                color: rgba(180, 220, 255, 0.6);
+            }
+
+            /* 滚动条样式 */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: rgba(15, 25, 40, 0.3);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(45deg, #008cff, #005ca0);
+                border-radius: 4px;
+            }
+
+            /* 响应式 */
+            @media (max-width: 1100px) {
+                .grid-3 {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .grid-2 {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .main-container {
+                    flex-direction: column;
+                }
+
+                .sidebar {
+                    width: 100%;
+                    height: auto;
+                    border-right: none;
+                    border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                }
+
+                .nav-menu {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .nav-item {
+                    margin: 5px;
+                    padding: 10px 15px;
+                }
+
+                .content {
+                    padding: 14px;
+                }
+
+                .grid-3 {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @media (max-width: 480px) {
+                .grid-3 {
+                    grid-template-columns: 1fr;
+                }
+
+                .header {
+                    padding: 16px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="particles" id="particles"></div>
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li class="nav-item">
+                        <span>🏠</span><span>首页</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>📊</span><span>系统监控</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>⚙️</span><span>系统设置</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>👥</span><span>用户管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🎭</span><span>角色管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>💬</span><span>命令管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📁</span><span>文件管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🔧</span><span>工具箱</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📋</span><span>日志查看</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🚪</span><span>退出登录</span>
+                    </li>
+                </ul>
+            </div>
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑（模仿首页布局） -->
+                <div class="header">
+                    <div class="header-title">系统监控</div>
+                    <div class="breadcrumb">
+                        <span>系统监控</span>
+                        <span>/</span>
+                        <span>实时监控</span>
+                    </div>
+                </div>
+
+                <!-- 内容 -->
+                <div class="content">
+                    <!-- 实时概览 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>实时概览</h3>
+                                <div class="card-subtitle">主机：<span class="muted" id="hostName">chobits-node-01</span> · 最后更新：<span class="muted" id="lastUpdated">--</span></div>
+                            </div>
+                            <div class="card-tools">
+                                <span class="badge ok" id="overallBadge">OK</span>
+                            </div>
+                        </div>
+                        <div class="grid-3">
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">CPU 使用率</div>
+                                    <div class="badge" id="cpuBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="cpuValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="cpuBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>1m 平均：<span id="cpuAvg" class="muted">--%</span></span>
+                                    <span>核心：<span id="cpuCores" class="muted">--</span></span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">内存 使用率</div>
+                                    <div class="badge" id="memBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="memValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="memBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>已用：<span id="memUsed" class="muted">--</span></span>
+                                    <span>总计：<span id="memTotal" class="muted">--</span></span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">磁盘 使用率</div>
+                                    <div class="badge" id="diskBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="diskValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="diskBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>已用：<span id="diskUsed" class="muted">--</span></span>
+                                    <span>总计：<span id="diskTotal" class="muted">--</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 性能图表 -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>CPU / Load 趋势</h3>
+                                    <div class="card-subtitle">近 60 秒采样（模拟）</div>
+                                </div>
+                                <div class="card-tools">
+                                    <span class="badge" id="loadLabel">load: --</span>
+                                </div>
+                            </div>
+                            <div class="mini-chart" id="cpuChart"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>网络吞吐（In / Out）</h3>
+                                    <div class="card-subtitle">近 60 秒采样（模拟）</div>
+                                </div>
+                                <div class="card-tools">
+                                    <span class="badge" id="netLabel">in: -- · out: --</span>
+                                </div>
+                            </div>
+                            <div class="mini-chart" id="netChart"></div>
+                        </div>
+                    </div>
+                    <!-- 进程 + 服务 -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Top 进程</h3>
+                                    <div class="card-subtitle">按 CPU / 内存占用排序（示例数据）</div>
+                                </div>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>PID</th>
+                                        <th>进程</th>
+                                        <th>CPU</th>
+                                        <th>MEM</th>
+                                        <th class="muted">用户</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="procTbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>服务状态</h3>
+                                    <div class="card-subtitle">关键服务存活与健康检查</div>
+                                </div>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>服务</th>
+                                        <th>状态</th>
+                                        <th>延迟</th>
+                                        <th class="muted">备注</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="svcTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 告警 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>告警与事件</h3>
+                                <div class="card-subtitle">支持接入告警平台（Prometheus / Alertmanager / Sentry 等）</div>
+                            </div>
+                        </div>
+                        <div class="alerts" id="alerts"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            /* -----------------------------
+             * Tech background (同你给的风格)
+             * ----------------------------- */
+            function createParticles(containerId = 'particles', particleCount = 28) {
+                const particlesContainer = document.getElementById(containerId);
+                if (!particlesContainer) return;
+                particlesContainer.innerHTML = '';
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 20;
+                    const duration = 15 + Math.random() * 25;
+                    particle.style.left = `${left}%`;
+                    particle.style.animationDelay = `-${delay}s`;
+                    particle.style.animationDuration = `${duration}s`;
+                    const size = 1 + Math.random() * 1.2;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    const opacity = 0.12 + Math.random() * 0.25;
+                    const blueTint = 140 + Math.floor(Math.random() * 40);
+                    particle.style.background = `rgba(0, ${blueTint}, 180, ${opacity})`;
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            function createBackgroundGlows() {
+                const body = document.body;
+                const glowCount = 4;
+                // 清理旧光晕（防止重复调用堆叠）
+                document.querySelectorAll('.glow-circle').forEach(n => n.remove());
+                const positions = [
+                    {top: '10%', left: '15%'},
+                    {bottom: '15%', right: '20%'},
+                    {top: '25%', right: '10%'},
+                    {bottom: '20%', left: '25%'}
+                ];
+                const sizes = [200, 250, 180, 220];
+                const colors = [
+                    'radial-gradient(circle, #008cff, transparent)',
+                    'radial-gradient(circle, #00c8dc, transparent)',
+                    'radial-gradient(circle, #0070b0, transparent)',
+                    'radial-gradient(circle, #00a0d0, transparent)'
+                ];
+                for (let i = 0; i < glowCount; i++) {
+                    const glow = document.createElement('div');
+                    glow.className = 'glow-circle';
+                    const pos = positions[i];
+                    if (pos.top) glow.style.top = pos.top;
+                    if (pos.bottom) glow.style.bottom = pos.bottom;
+                    if (pos.left) glow.style.left = pos.left;
+                    if (pos.right) glow.style.right = pos.right;
+                    glow.style.width = `${sizes[i]}px`;
+                    glow.style.height = `${sizes[i]}px`;
+                    glow.style.background = colors[i];
+                    const delay = Math.random() * 5;
+                    const duration = 8 + Math.random() * 12;
+                    glow.style.animation = `glowPulse${i} ${duration}s ease-in-out ${delay}s infinite alternate`;
+                    body.appendChild(glow);
+                    const style = document.createElement('style');
+                    style.textContent = `
+                    @keyframes glowPulse${i} {
+                        0% { opacity: 0.10; transform: scale(0.95); }
+                        50% { opacity: 0.18; transform: scale(1.05); }
+                        100% { opacity: 0.12; transform: scale(1); }
+                    }
+                `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            function initTechBackground(particlesContainerId = 'particles', particleCount = 28) {
+                let particlesContainer = document.getElementById(particlesContainerId);
+                if (!particlesContainer) {
+                    particlesContainer = document.createElement('div');
+                    particlesContainer.id = particlesContainerId;
+                    particlesContainer.className = 'particles';
+                    document.body.insertBefore(particlesContainer, document.body.firstChild);
+                }
+                createParticles(particlesContainerId, particleCount);
+                createBackgroundGlows();
+            }
+
+            /* -----------------------------
+             * 监控页面逻辑（模拟数据）
+             * ----------------------------- */
+            const state = {
+                cpuSeries: Array.from({length: 60}, () => 10 + Math.random() * 20),
+                netInSeries: Array.from({length: 60}, () => 5 + Math.random() * 10),
+                netOutSeries: Array.from({length: 60}, () => 3 + Math.random() * 8)
+            };
+
+            function clamp(n, min, max) {
+                return Math.max(min, Math.min(max, n));
+            }
+
+            function fmtPct(v) {
+                return `${v.toFixed(1)}%`;
+            }
+
+            function badgeByPct(pct) {
+                if (pct >= 90) return {cls: 'err', text: 'CRITICAL'};
+                if (pct >= 75) return {cls: 'warn', text: 'WARNING'};
+                return {cls: '', text: 'NORMAL'};
+            }
+
+            function setBadge(el, pct) {
+                const b = badgeByPct(pct);
+                el.className = `badge ${b.cls}`.trim();
+                el.textContent = b.text;
+            }
+
+            function updateOverallBadge(cpu, mem, disk) {
+                const maxv = Math.max(cpu, mem, disk);
+                const badge = document.getElementById('overallBadge');
+                if (maxv >= 90) {
+                    badge.className = 'badge err';
+                    badge.textContent = 'CRITICAL';
+                    return;
+                }
+                if (maxv >= 75) {
+                    badge.className = 'badge warn';
+                    badge.textContent = 'WARNING';
+                    return;
+                }
+                badge.className = 'badge ok';
+                badge.textContent = 'OK';
+            }
+
+            function nowStr() {
+                const d = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            }
+
+            function genNextValue(prev, volatility = 6, floor = 1, ceil = 98) {
+                const drift = (Math.random() - 0.5) * volatility;
+                return clamp(prev + drift, floor, ceil);
+            }
+
+            function updateSeries() {
+                state.cpuSeries.push(genNextValue(state.cpuSeries[state.cpuSeries.length - 1], 9, 2, 98));
+                state.cpuSeries.shift();
+                state.netInSeries.push(genNextValue(state.netInSeries[state.netInSeries.length - 1], 6, 0.5, 80));
+                state.netInSeries.shift();
+                state.netOutSeries.push(genNextValue(state.netOutSeries[state.netOutSeries.length - 1], 6, 0.5, 80));
+                state.netOutSeries.shift();
+            }
+
+            function buildSparklineSVG(series, opts = {}) {
+                const w = 1000, h = 260;
+                const padding = 18;
+                const max = Math.max(...series, 1);
+                const min = Math.min(...series, 0);
+                const xStep = (w - padding * 2) / (series.length - 1 || 1);
+                const yMap = (v) => {
+                    if (max === min) return h / 2;
+                    const t = (v - min) / (max - min);
+                    return padding + (1 - t) * (h - padding * 2);
+                };
+                let d = '';
+                series.forEach((v, i) => {
+                    const x = padding + i * xStep;
+                    const y = yMap(v);
+                    d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+                });
+                const area = `${d} L ${padding + (series.length - 1) * xStep} ${h - padding} L ${padding} ${h - padding} Z`;
+                const gridY = [0.25, 0.5, 0.75].map(t => padding + t * (h - padding * 2));
+                const gridLines = gridY.map(y => `<line class="gridline" x1="${padding}" y1="${y}" x2="${w - padding}" y2="${y}" />`).join('');
+                return `
+                <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+                    ${gridLines}
+                    <path class="area" d="${area}"></path>
+                    <path class="line" d="${d}"></path>
+                </svg>
+            `;
+            }
+
+            function renderCharts() {
+                document.getElementById('cpuChart').innerHTML = buildSparklineSVG(state.cpuSeries);
+                const w = 1000, h = 260, padding = 18;
+                const all = state.netInSeries.concat(state.netOutSeries);
+                const max = Math.max(...all, 1);
+                const min = Math.min(...all, 0);
+                const xStep = (w - padding * 2) / (state.netInSeries.length - 1 || 1);
+                const yMap = (v) => {
+                    if (max === min) return h / 2;
+                    const t = (v - min) / (max - min);
+                    return padding + (1 - t) * (h - padding * 2);
+                };
+
+                function pathFor(series) {
+                    let d = '';
+                    series.forEach((v, i) => {
+                        const x = padding + i * xStep;
+                        const y = yMap(v);
+                        d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+                    });
+                    return d;
+                }
+
+                const gridY = [0.25, 0.5, 0.75].map(t => padding + t * (h - padding * 2));
+                const gridLines = gridY.map(y => `<line class="gridline" x1="${padding}" y1="${y}" x2="${w - padding}" y2="${y}" />`).join('');
+                const netSvg = `
+                <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+                    ${gridLines}
+                    <path d="${pathFor(state.netInSeries)}" class="line"></path>
+                    <path d="${pathFor(state.netOutSeries)}" style="fill:none;stroke:rgba(0,200,220,0.45);stroke-width:2"></path>
+                </svg>
+            `;
+                document.getElementById('netChart').innerHTML = netSvg;
+            }
+
+            function renderTop() {
+                const cpu = state.cpuSeries[state.cpuSeries.length - 1];
+                const mem = clamp(35 + (Math.random() * 35), 10, 95);
+                const disk = clamp(50 + (Math.random() * 40), 20, 98);
+                const cores = 8;
+                const memTotalGB = 32;
+                const memUsedGB = (memTotalGB * mem / 100);
+                const diskTotalGB = 200;
+                const diskUsedGB = (diskTotalGB * disk / 100);
+                document.getElementById('lastUpdated').textContent = nowStr();
+                document.getElementById('cpuValue').textContent = fmtPct(cpu);
+                document.getElementById('cpuBar').style.width = `${cpu.toFixed(1)}%`;
+                document.getElementById('cpuAvg').textContent = fmtPct((state.cpuSeries.slice(-10).reduce((a, b) => a + b, 0) / 10));
+                document.getElementById('cpuCores').textContent = `${cores}`;
+                document.getElementById('memValue').textContent = fmtPct(mem);
+                document.getElementById('memBar').style.width = `${mem.toFixed(1)}%`;
+                document.getElementById('memUsed').textContent = `${memUsedGB.toFixed(1)} GB`;
+                document.getElementById('memTotal').textContent = `${memTotalGB} GB`;
+                document.getElementById('diskValue').textContent = fmtPct(disk);
+                document.getElementById('diskBar').style.width = `${disk.toFixed(1)}%`;
+                document.getElementById('diskUsed').textContent = `${diskUsedGB.toFixed(0)} GB`;
+                document.getElementById('diskTotal').textContent = `${diskTotalGB} GB`;
+                setBadge(document.getElementById('cpuBadge'), cpu);
+                setBadge(document.getElementById('memBadge'), mem);
+                setBadge(document.getElementById('diskBadge'), disk);
+                updateOverallBadge(cpu, mem, disk);
+                const load = (cpu / 100 * (cores / 2)).toFixed(2);
+                document.getElementById('loadLabel').textContent = `load: ${load}`;
+                const inNow = state.netInSeries[state.netInSeries.length - 1];
+                const outNow = state.netOutSeries[state.netOutSeries.length - 1];
+                document.getElementById('netLabel').textContent = `in: ${inNow.toFixed(1)} MB/s · out: ${outNow.toFixed(1)} MB/s`;
+            }
+
+            function renderTables() {
+                const procs = [
+                    {pid: 1842, name: "chobits-api", cpu: clamp(6 + Math.random() * 18, 0.3, 45), mem: clamp(3 + Math.random() * 10, 0.2, 30), user: "root"},
+                    {pid: 2211, name: "postgres", cpu: clamp(2 + Math.random() * 10, 0.3, 35), mem: clamp(6 + Math.random() * 15, 0.2, 45), user: "postgres"},
+                    {pid: 987, name: "redis-server", cpu: clamp(1 + Math.random() * 6, 0.2, 18), mem: clamp(1 + Math.random() * 6, 0.2, 12), user: "redis"},
+                    {pid: 3021, name: "nginx", cpu: clamp(0.5 + Math.random() * 3.5, 0.1, 10), mem: clamp(0.8 + Math.random() * 2.2, 0.1, 6), user: "www-data"},
+                    {pid: 4112, name: "node-exporter", cpu: clamp(0.2 + Math.random() * 1.2, 0.1, 6), mem: clamp(0.2 + Math.random() * 0.8, 0.1, 4), user: "nobody"}
+                ].sort((a, b) => b.cpu - a.cpu);
+                const procTbody = document.getElementById('procTbody');
+                procTbody.innerHTML = procs.map(p => `
+                <tr>
+                    <td>${p.pid}</td>
+                    <td>${p.name}</td>
+                    <td>${p.cpu.toFixed(1)}%</td>
+                    <td>${p.mem.toFixed(1)}%</td>
+                    <td class="muted">${p.user}</td>
+                </tr>
+            `).join('');
+                const svc = [
+                    {name: "chobits-api", ok: true, latency: 18 + Math.random() * 30, note: "HTTP 200 /health"},
+                    {name: "postgres", ok: true, latency: 2 + Math.random() * 6, note: "连接正常"},
+                    {name: "redis", ok: true, latency: 1 + Math.random() * 4, note: "PONG"},
+                    {name: "prometheus", ok: Math.random() > 0.08, latency: 25 + Math.random() * 60, note: "抓取正常"},
+                    {name: "grafana", ok: Math.random() > 0.10, latency: 30 + Math.random() * 80, note: "登录可用"}
+                ];
+                const svcTbody = document.getElementById('svcTbody');
+                svcTbody.innerHTML = svc.map(s => {
+                    const status = s.ok ? `<span class="badge ok">RUNNING</span>` : `<span class="badge err">DOWN</span>`;
+                    const note = s.ok ? s.note : '健康检查失败';
+                    return `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${status}</td>
+                        <td>${s.latency.toFixed(0)} ms</td>
+                        <td class="muted">${note}</td>
+                    </tr>
+                `;
+                }).join('');
+            }
+
+            function renderAlerts() {
+                const n = 3 + Math.floor(Math.random() * 3);
+                const list = [];
+                for (let i = 0; i < n; i++) {
+                    const r = Math.random();
+                    if (r > 0.78) {
+                        list.push({icon: '⛔', title: '服务不可用：prometheus 健康检查失败', time: '刚刚'});
+                    } else if (r > 0.5) {
+                        list.push({icon: '⚠️', title: '磁盘使用率上升，建议清理日志/缓存', time: '3 分钟前'});
+                    } else {
+                        list.push({icon: 'ℹ️', title: '配置热更新完成：监控采样间隔已应用', time: '10 分钟前'});
+                    }
+                }
+                const wrap = document.getElementById('alerts');
+                wrap.innerHTML = list.map(a => `
+                <div class="alert">
+                    <div class="icon">${a.icon}</div>
+                    <div class="text">
+                        <div class="title">${a.title}</div>
+                        <div class="time">${a.time}</div>
+                    </div>
+                </div>
+            `).join('');
+            }
+
+            function tick() {
+                updateSeries();
+                renderCharts();
+                renderTop();
+                renderTables();
+                renderAlerts();
+            }
+
+            /* -----------------------------
+             * 初始化
+             * ----------------------------- */
+            document.addEventListener('DOMContentLoaded', () => {
+                initTechBackground();
+                // 菜单交互
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function () {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        const titleText = this.querySelector('span:last-child').textContent;
+                        document.querySelector('.header-title').textContent = titleText;
+                        document.querySelector('.breadcrumb span:last-child').textContent = titleText;
+                    });
+                });
+                // 首次渲染
+                tick();
+                // 定时刷新（每3秒）
+                setInterval(tick, 3000);
+            });
+        </script>
+    </body>
+</html>
+

@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 系统设置</title>
+        <style>
+            /* 通用科技感背景样式 */
+            body {
+                margin: 0;
+                height: 100vh;
+                background: linear-gradient(135deg, #0a0f1a 0%, #060912 50%, #04070f 100%);
+                font-family: "Segoe UI", sans-serif;
+                color: #fff;
+                overflow: hidden;
+                position: relative;
+            }
+
+            /* 深色背景上的微妙噪点纹理 */
+            body::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: radial-gradient(circle at 10% 20%, rgba(0, 120, 160, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(0, 100, 140, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(0, 80, 120, 0.02) 1px, transparent 1px);
+                background-size: 100px 100px, 120px 120px, 80px 80px;
+                z-index: -2;
+            }
+
+            /* 动态粒子背景 */
+            .particles {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            .particle {
+                position: absolute;
+                width: 1.5px;
+                height: 1.5px;
+                background: rgba(0, 140, 180, 0.2);
+                border-radius: 50%;
+                animation: float 20s infinite linear;
+            }
+
+            @keyframes float {
+                0% {
+                    transform: translateY(0) translateX(0);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 0.4;
+                }
+                90% {
+                    opacity: 0.2;
+                }
+                100% {
+                    transform: translateY(-100vh) translateX(80px);
+                    opacity: 0;
+                }
+            }
+
+            /* 背景光晕效果 */
+            .glow-circle {
+                position: absolute;
+                border-radius: 50%;
+                filter: blur(40px);
+                opacity: 0.15;
+                z-index: -3;
+                pointer-events: none;
+            }
+
+            /* 主布局容器 */
+            .main-container {
+                display: flex;
+                height: 100vh;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* 侧边栏样式 */
+            .sidebar {
+                width: 220px;
+                background: rgba(15, 25, 40, 0.7);
+                border-right: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                padding: 20px 0;
+                transition: all 0.3s ease;
+                box-shadow: 2px 0 15px rgba(0, 10, 20, 0.2);
+            }
+
+            .sidebar:hover {
+                border-right-color: rgba(0, 140, 180, 0.3);
+                box-shadow: 2px 0 25px rgba(0, 140, 180, 0.2);
+            }
+
+            .logo {
+                text-align: center;
+                padding: 0 20px 20px;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.1);
+                margin-bottom: 20px;
+            }
+
+            .logo h3 {
+                margin: 0;
+                font-size: 18px;
+                letter-spacing: 1px;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .nav-menu {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .nav-item {
+                padding: 12px 20px;
+                margin: 0 10px 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                user-select: none;
+            }
+
+            .nav-item:hover {
+                background: rgba(20, 35, 55, 0.7);
+                border-left: 3px solid #008cff;
+            }
+
+            .nav-item.active {
+                background: rgba(0, 140, 180, 0.2);
+                border-left: 3px solid #00c8dc;
+            }
+
+            .nav-item span {
+                font-size: 14px;
+                font-weight: 400;
+            }
+
+            /* 主内容区域 */
+            .main-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            /* 标题栏样式（模仿首页） */
+            .header {
+                padding: 20px 30px;
+                background: rgba(15, 25, 40, 0.6);
+                border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                backdrop-filter: blur(10px);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .header-title {
+                font-size: 20px;
+                font-weight: 500;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            /* 面包屑样式 */
+            .breadcrumb {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                color: rgba(180, 220, 255, 0.7);
+            }
+
+            .breadcrumb span {
+                color: rgba(180, 220, 255, 0.9);
+            }
+
+            .breadcrumb i {
+                font-size: 12px;
+                color: rgba(100, 180, 220, 0.5);
+            }
+
+            /* 内容区域 */
+            .content {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            /* 卡片通用样式 */
+            .card {
+                background: rgba(15, 25, 40, 0.6);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+                padding: 18px;
+                box-shadow: 0 8px 32px rgba(0, 10, 20, 0.3);
+                transition: all 0.3s ease;
+                margin-bottom: 18px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .card:hover {
+                box-shadow: 0 0 25px rgba(0, 140, 180, 0.3);
+                border-color: rgba(0, 140, 180, 0.3);
+                transform: translateY(-2px);
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .card-header h3 {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 500;
+                background: linear-gradient(90deg, #00c8dc, #008cff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .card-subtitle {
+                font-size: 12px;
+                color: rgba(180, 220, 255, 0.65);
+            }
+
+            .card-tools {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            /* 发光边框动画 */
+            .card::after {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(45deg, #008cff, #005ca0, #008cff);
+                background-size: 400%;
+                border-radius: 18px;
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .card:hover::after {
+                opacity: 0.35;
+                animation: borderGlow 4s linear infinite;
+            }
+
+            @keyframes borderGlow {
+                0% {
+                    background-position: 0% 50%;
+                }
+                100% {
+                    background-position: 400% 50%;
+                }
+            }
+
+            /* 表格 */
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+                overflow: hidden;
+                border-radius: 12px;
+                border: 1px solid rgba(100, 180, 220, 0.12);
+            }
+
+            .table th, .table td {
+                padding: 12px 15px;
+                font-size: 13px;
+                text-align: left;
+                border-bottom: 1px solid rgba(100, 180, 220, 0.10);
+                color: rgba(224, 240, 255, 0.9);
+            }
+
+            .table th {
+                background: rgba(20, 35, 55, 0.6);
+                color: rgba(180, 220, 255, 0.85);
+                font-weight: 500;
+            }
+
+            .table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .table tr:hover td {
+                background: rgba(0, 140, 180, 0.12);
+            }
+
+            .muted {
+                color: rgba(180, 220, 255, 0.65) !important;
+            }
+
+            /* 值字段样式 */
+            .value-cell {
+                max-width: 200px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* 描述字段样式 */
+            .description-cell {
+                max-width: 250px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* 状态标签 */
+            .status-badge {
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 500;
+                text-transform: uppercase;
+            }
+
+            .status-normal {
+                background: rgba(0, 204, 106, 0.2);
+                color: #00cc6a;
+                border: 1px solid rgba(0, 204, 106, 0.3);
+            }
+
+            .status-disable {
+                background: rgba(204, 46, 46, 0.2);
+                color: #cc2e2e;
+                border: 1px solid rgba(204, 46, 46, 0.3);
+            }
+
+            /* 操作按钮 */
+            .action-btn {
+                padding: 6px 12px;
+                border: none;
+                border-radius: 6px;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                margin-right: 6px;
+            }
+
+            .btn-normal {
+                background: rgba(0, 204, 106, 0.2);
+                color: #00cc6a;
+                border: 1px solid rgba(0, 204, 106, 0.3);
+            }
+
+            .btn-disable {
+                background: rgba(204, 46, 46, 0.2);
+                color: #cc2e2e;
+                border: 1px solid rgba(204, 46, 46, 0.3);
+            }
+
+            .btn-delete {
+                background: rgba(255, 170, 0, 0.2);
+                color: #ffaa00;
+                border: 1px solid rgba(255, 170, 0, 0.3);
+            }
+
+            .btn-edit {
+                background: rgba(0, 140, 180, 0.2);
+                color: #008cff;
+                border: 1px solid rgba(0, 140, 180, 0.3);
+            }
+
+            .action-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 140, 180, 0.3);
+            }
+
+            /* 搜索和筛选 */
+            .search-bar {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+
+            .search-input {
+                flex: 1;
+                min-width: 200px;
+                padding: 10px 15px;
+                background: rgba(20, 35, 55, 0.7);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 8px;
+                color: #e0f0ff;
+                font-size: 14px;
+                outline: none;
+            }
+
+            .search-input::placeholder {
+                color: rgba(180, 220, 255, 0.5);
+            }
+
+            .search-input:focus {
+                border-color: rgba(0, 140, 180, 0.4);
+                box-shadow: 0 0 10px rgba(0, 140, 180, 0.2);
+            }
+
+            .filter-select {
+                padding: 10px 15px;
+                background: rgba(20, 35, 55, 0.7);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                border-radius: 8px;
+                color: #e0f0ff;
+                font-size: 14px;
+                outline: none;
+                min-width: 120px;
+            }
+
+            .filter-select option {
+                background: rgba(15, 25, 40, 0.8);
+            }
+
+            /* 分页 */
+            .pagination {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 20px;
+            }
+
+            .page-btn {
+                padding: 8px 12px;
+                background: rgba(20, 35, 55, 0.7);
+                border: 1px solid rgba(100, 180, 220, 0.2);
+                color: rgba(180, 220, 255, 0.8);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .page-btn:hover {
+                background: rgba(0, 140, 180, 0.3);
+                border-color: rgba(0, 140, 180, 0.4);
+            }
+
+            .page-btn.active {
+                background: rgba(0, 140, 180, 0.5);
+                border-color: rgba(0, 140, 180, 0.6);
+                color: white;
+            }
+
+            /* 滚动条样式 */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: rgba(15, 25, 40, 0.3);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(45deg, #008cff, #005ca0);
+                border-radius: 4px;
+            }
+
+            /* 响应式 */
+            @media (max-width: 768px) {
+                .main-container {
+                    flex-direction: column;
+                }
+
+                .sidebar {
+                    width: 100%;
+                    height: auto;
+                    border-right: none;
+                    border-bottom: 1px solid rgba(100, 180, 220, 0.2);
+                }
+
+                .nav-menu {
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .nav-item {
+                    margin: 5px;
+                    padding: 10px 15px;
+                }
+
+                .content {
+                    padding: 14px;
+                }
+
+                .search-bar {
+                    flex-direction: column;
+                }
+
+                .search-input {
+                    min-width: auto;
+                }
+
+                .value-cell,
+                .description-cell {
+                    max-width: 120px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .header {
+                    padding: 16px;
+                }
+
+                .table th, .table td {
+                    padding: 8px 10px;
+                    font-size: 12px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="particles" id="particles"></div>
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li class="nav-item">
+                        <span>🏠</span><span>首页</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📊</span><span>系统监控</span>
+                    </li>
+                    <li class="nav-item active">
+                        <span>⚙️</span><span>系统设置</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>👥</span><span>用户管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🎭</span><span>角色管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>💬</span><span>命令管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📁</span><span>文件管理</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🔧</span><span>工具箱</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>📋</span><span>日志查看</span>
+                    </li>
+                    <li class="nav-item">
+                        <span>🚪</span><span>退出登录</span>
+                    </li>
+                </ul>
+            </div>
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑 -->
+                <div class="header">
+                    <div class="header-title">系统设置</div>
+                    <div class="breadcrumb">
+                        <span>系统设置</span>
+                        <span>/</span>
+                        <span>设置列表</span>
+                    </div>
+                </div>
+
+                <!-- 内容 -->
+                <div class="content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>设置列表</h3>
+                                <div class="card-subtitle">共 <span id="totalCount">0</span> 个设置项</div>
+                            </div>
+                            <div class="card-tools">
+                                <button class="action-btn btn-normal" onclick="addSetting()">+ 添加设置</button>
+                            </div>
+                        </div>
+
+                        <!-- 搜索和筛选 -->
+                        <div class="search-bar">
+                            <input type="text" class="search-input" id="searchInput" placeholder="搜索键名或描述..." oninput="filterSettings()">
+                            <select class="filter-select" id="statusFilter" onchange="filterSettings()">
+                                <option value="">所有状态</option>
+                                <option value="normal">正常</option>
+                                <option value="disable">已禁用</option>
+                            </select>
+                        </div>
+
+                        <!-- 设置表格 -->
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>键名</th>
+                                        <th>值</th>
+                                        <th>描述</th>
+                                        <th>状态</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="settingsTableBody">
+                                    <!-- 设置数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 分页 -->
+                        <div class="pagination" id="pagination">
+                            <!-- 分页按钮将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            /* -----------------------------
+             * Tech background (同你给的风格)
+             * ----------------------------- */
+            function createParticles(containerId = 'particles', particleCount = 28) {
+                const particlesContainer = document.getElementById(containerId);
+                if (!particlesContainer) return;
+                particlesContainer.innerHTML = '';
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 20;
+                    const duration = 15 + Math.random() * 25;
+                    particle.style.left = `${left}%`;
+                    particle.style.animationDelay = `-${delay}s`;
+                    particle.style.animationDuration = `${duration}s`;
+                    const size = 1 + Math.random() * 1.2;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    const opacity = 0.12 + Math.random() * 0.25;
+                    const blueTint = 140 + Math.floor(Math.random() * 40);
+                    particle.style.background = `rgba(0, ${blueTint}, 180, ${opacity})`;
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            function createBackgroundGlows() {
+                const body = document.body;
+                const glowCount = 4;
+                // 清理旧光晕（防止重复调用堆叠）
+                document.querySelectorAll('.glow-circle').forEach(n => n.remove());
+                const positions = [
+                    {top: '10%', left: '15%'},
+                    {bottom: '15%', right: '20%'},
+                    {top: '25%', right: '10%'},
+                    {bottom: '20%', left: '25%'}
+                ];
+                const sizes = [200, 250, 180, 220];
+                const colors = [
+                    'radial-gradient(circle, #008cff, transparent)',
+                    'radial-gradient(circle, #00c8dc, transparent)',
+                    'radial-gradient(circle, #0070b0, transparent)',
+                    'radial-gradient(circle, #00a0d0, transparent)'
+                ];
+                for (let i = 0; i < glowCount; i++) {
+                    const glow = document.createElement('div');
+                    glow.className = 'glow-circle';
+                    const pos = positions[i];
+                    if (pos.top) glow.style.top = pos.top;
+                    if (pos.bottom) glow.style.bottom = pos.bottom;
+                    if (pos.left) glow.style.left = pos.left;
+                    if (pos.right) glow.style.right = pos.right;
+                    glow.style.width = `${sizes[i]}px`;
+                    glow.style.height = `${sizes[i]}px`;
+                    glow.style.background = colors[i];
+                    const delay = Math.random() * 5;
+                    const duration = 8 + Math.random() * 12;
+                    glow.style.animation = `glowPulse${i} ${duration}s ease-in-out ${delay}s infinite alternate`;
+                    body.appendChild(glow);
+                    const style = document.createElement('style');
+                    style.textContent = `
+                    @keyframes glowPulse${i} {
+                        0% { opacity: 0.10; transform: scale(0.95); }
+                        50% { opacity: 0.18; transform: scale(1.05); }
+                        100% { opacity: 0.12; transform: scale(1); }
+                    }
+                `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            function initTechBackground(particlesContainerId = 'particles', particleCount = 28) {
+                let particlesContainer = document.getElementById(particlesContainerId);
+                if (!particlesContainer) {
+                    particlesContainer = document.createElement('div');
+                    particlesContainer.id = particlesContainerId;
+                    particlesContainer.className = 'particles';
+                    document.body.insertBefore(particlesContainer, document.body.firstChild);
+                }
+                createParticles(particlesContainerId, particleCount);
+                createBackgroundGlows();
+            }
+
+            /* -----------------------------
+             * 系统设置页面逻辑
+             * ----------------------------- */
+            // 模拟设置数据（基于你提供的表结构）
+            const mockSettings = [
+                {
+                    id: 1,
+                    key: 'bot_name',
+                    value: 'Chobits',
+                    description: '机器人名称',
+                    status: 'normal',
+                    created_time: '2023-01-15 10:35:22',
+                    updated_time: '2023-12-01 14:22:45',
+                    deleted_time: null
+                },
+                {
+                    id: 2,
+                    key: 'admin_qq',
+                    value: '123456789',
+                    description: '管理员QQ号',
+                    status: 'normal',
+                    created_time: '2023-01-15 10:36:15',
+                    updated_time: '2023-11-20 09:18:33',
+                    deleted_time: null
+                },
+                {
+                    id: 3,
+                    key: 'auto_reply',
+                    value: 'true',
+                    description: '是否启用自动回复功能',
+                    status: 'normal',
+                    created_time: '2023-02-10 08:25:44',
+                    updated_time: '2023-12-10 11:42:18',
+                    deleted_time: null
+                },
+                {
+                    id: 4,
+                    key: 'max_users',
+                    value: '1000',
+                    description: '最大用户数量限制',
+                    status: 'normal',
+                    created_time: '2023-02-10 08:26:30',
+                    updated_time: '2023-10-28 16:37:52',
+                    deleted_time: null
+                },
+                {
+                    id: 5,
+                    key: 'log_level',
+                    value: 'info',
+                    description: '日志级别 (debug/info/warn/error)',
+                    status: 'normal',
+                    created_time: '2023-03-01 12:15:27',
+                    updated_time: '2023-09-14 08:55:19',
+                    deleted_time: null
+                },
+                {
+                    id: 6,
+                    key: 'backup_interval',
+                    value: '86400',
+                    description: '备份间隔时间（秒），默认24小时',
+                    status: 'disable',
+                    created_time: '2023-04-18 21:35:11',
+                    updated_time: '2023-12-15 13:28:44',
+                    deleted_time: null
+                },
+                {
+                    id: 7,
+                    key: 'api_timeout',
+                    value: '30',
+                    description: 'API请求超时时间（秒）',
+                    status: 'normal',
+                    created_time: '2023-05-28 14:50:38',
+                    updated_time: '2023-11-30 17:12:05',
+                    deleted_time: null
+                },
+                {
+                    id: 8,
+                    key: 'maintenance_mode',
+                    value: 'false',
+                    description: '维护模式开关',
+                    status: 'normal',
+                    created_time: '2023-05-28 14:51:22',
+                    updated_time: '2023-08-22 10:44:37',
+                    deleted_time: null
+                },
+                {
+                    id: 9,
+                    key: 'cache_ttl',
+                    value: '3600',
+                    description: '缓存过期时间（秒）',
+                    status: 'normal',
+                    created_time: '2023-06-15 09:30:45',
+                    updated_time: '2023-12-05 15:20:18',
+                    deleted_time: null
+                },
+                {
+                    id: 10,
+                    key: 'webhook_url',
+                    value: 'https://example.com/webhook',
+                    description: 'Webhook回调地址',
+                    status: 'disable',
+                    created_time: '2023-07-22 16:45:33',
+                    updated_time: '2023-11-18 12:33:27',
+                    deleted_time: null
+                }
+            ];
+
+            let filteredSettings = [...mockSettings];
+            let currentPage = 1;
+            const settingsPerPage = 5;
+
+            // 格式化日期
+            function formatDate(dateString) {
+                if (!dateString) return '--';
+                const date = new Date(dateString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}`;
+            }
+
+            // 渲染设置表格
+            function renderSettingsTable() {
+                const startIndex = (currentPage - 1) * settingsPerPage;
+                const endIndex = startIndex + settingsPerPage;
+                const paginatedSettings = filteredSettings.slice(startIndex, endIndex);
+
+                const tbody = document.getElementById('settingsTableBody');
+                tbody.innerHTML = '';
+
+                paginatedSettings.forEach(setting => {
+                    const row = document.createElement('tr');
+
+                    // 状态标签
+                    const statusClass = setting.status === 'normal' ? 'status-normal' : 'status-disable';
+                    const statusText = setting.status === 'normal' ? '正常' : '已禁用';
+
+                    row.innerHTML = `
+                    <td>${setting.id}</td>
+                    <td><strong>${setting.key}</strong></td>
+                    <td class="value-cell">${setting.value || '--'}</td>
+                    <td class="description-cell">${setting.description || '--'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td class="muted">${formatDate(setting.created_time)}</td>
+                    <td class="muted">${formatDate(setting.updated_time)}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editSetting(${setting.id})">编辑</button>
+                        <button class="action-btn ${setting.status === 'normal' ? 'btn-disable' : 'btn-normal'}"
+                                onclick="toggleSettingStatus(${setting.id})">
+                            ${setting.status === 'normal' ? '禁用' : '启用'}
+                        </button>
+                        <button class="action-btn btn-delete" onclick="deleteSetting(${setting.id})">删除</button>
+                    </td>
+                `;
+                    tbody.appendChild(row);
+                });
+
+                // 更新总设置数
+                document.getElementById('totalCount').textContent = filteredSettings.length;
+            }
+
+            // 渲染分页
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredSettings.length / settingsPerPage);
+                const paginationDiv = document.getElementById('pagination');
+                paginationDiv.innerHTML = '';
+
+                if (totalPages <= 1) return;
+
+                // 上一页
+                if (currentPage > 1) {
+                    const prevBtn = document.createElement('button');
+                    prevBtn.className = 'page-btn';
+                    prevBtn.textContent = '‹';
+                    prevBtn.onclick = () => {
+                        currentPage--;
+                        renderSettingsTable();
+                        renderPagination();
+                    };
+                    paginationDiv.appendChild(prevBtn);
+                }
+
+                // 页码按钮
+                const startPage = Math.max(1, currentPage - 2);
+                const endPage = Math.min(totalPages, currentPage + 2);
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => {
+                        currentPage = i;
+                        renderSettingsTable();
+                        renderPagination();
+                    };
+                    paginationDiv.appendChild(pageBtn);
+                }
+
+                // 下一页
+                if (currentPage < totalPages) {
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'page-btn';
+                    nextBtn.textContent = '›';
+                    nextBtn.onclick = () => {
+                        currentPage++;
+                        renderSettingsTable();
+                        renderPagination();
+                    };
+                    paginationDiv.appendChild(nextBtn);
+                }
+            }
+
+            // 筛选设置
+            function filterSettings() {
+                const searchValue = document.getElementById('searchInput').value.toLowerCase();
+                const statusFilter = document.getElementById('statusFilter').value;
+
+                filteredSettings = mockSettings.filter(setting => {
+                    const matchesSearch = setting.id.toString().includes(searchValue) ||
+                        setting.key.toLowerCase().includes(searchValue) ||
+                        (setting.description && setting.description.toLowerCase().includes(searchValue)) ||
+                        (setting.value && setting.value.toLowerCase().includes(searchValue));
+                    const matchesStatus = statusFilter === '' || setting.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+
+                currentPage = 1;
+                renderSettingsTable();
+                renderPagination();
+            }
+
+            // 切换设置状态
+            function toggleSettingStatus(settingId) {
+                const setting = mockSettings.find(s => s.id === settingId);
+                if (setting) {
+                    setting.status = setting.status === 'normal' ? 'disable' : 'normal';
+                    setting.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                    filterSettings(); // 重新应用筛选
+                    alert(`设置 "${setting.key}" 已${setting.status === 'normal' ? '启用' : '禁用'}`);
+                }
+            }
+
+            // 删除设置
+            function deleteSetting(settingId) {
+                if (confirm('确定要删除此设置吗？此操作不可恢复。')) {
+                    const settingIndex = mockSettings.findIndex(s => s.id === settingId);
+                    if (settingIndex !== -1) {
+                        const settingKey = mockSettings[settingIndex].key;
+                        mockSettings.splice(settingIndex, 1);
+                        filterSettings(); // 重新应用筛选
+                        alert(`设置 "${settingKey}" 删除成功`);
+                    }
+                }
+            }
+
+            // 添加设置
+            function addSetting() {
+                const key = prompt('请输入设置键名:');
+                if (key && key.trim()) {
+                    const value = prompt('请输入设置值:') || '';
+                    const description = prompt('请输入设置描述（可选）:') || '';
+                    const newSetting = {
+                        id: Math.max(...mockSettings.map(s => s.id)) + 1,
+                        key: key.trim(),
+                        value: value.trim(),
+                        description: description.trim(),
+                        status: 'normal',
+                        created_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        updated_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        deleted_time: null
+                    };
+                    mockSettings.push(newSetting);
+                    filterSettings();
+                    alert('设置添加成功');
+                } else if (key !== null) {
+                    alert('设置键名不能为空');
+                }
+            }
+
+            // 编辑设置
+            function editSetting(settingId) {
+                const setting = mockSettings.find(s => s.id === settingId);
+                if (setting) {
+                    const newKey = prompt('编辑设置键名:', setting.key);
+                    if (newKey === null) return; // 用户取消
+                    if (!newKey.trim()) {
+                        alert('设置键名不能为空');
+                        return;
+                    }
+                    const newValue = prompt('编辑设置值:', setting.value || '');
+                    const newDescription = prompt('编辑设置描述:', setting.description || '');
+                    setting.key = newKey.trim();
+                    setting.value = newValue ? newValue.trim() : '';
+                    setting.description = newDescription ? newDescription.trim() : '';
+                    setting.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                    filterSettings();
+                    alert('设置更新成功');
+                }
+            }
+
+            /* -----------------------------
+             * 初始化
+             * ----------------------------- */
+            document.addEventListener('DOMContentLoaded', () => {
+                initTechBackground();
+
+                // 菜单交互
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function () {
+                        navItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        const titleText = this.querySelector('span:last-child').textContent;
+                        document.querySelector('.header-title').textContent = titleText;
+                        document.querySelector('.breadcrumb span:last-child').textContent = titleText;
+                    });
+                });
+
+                // 初始化设置列表
+                renderSettingsTable();
+                renderPagination();
+            });
+        </script>
+    </body>
+</html>
+
