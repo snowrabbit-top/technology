@@ -28,6 +28,17 @@ function renderMenu() {
         }
         if (item.href) {
             navItem.dataset.href = item.href;
+            navItem.setAttribute('role', 'link');
+            navItem.setAttribute('tabindex', '0');
+            navItem.addEventListener('click', () => {
+                window.location.href = item.href;
+            });
+            navItem.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    window.location.href = item.href;
+                }
+            });
         }
 
         const iconSpan = document.createElement('span');
